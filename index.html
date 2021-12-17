@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>myMemoPad</title>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="css/sample.css" />
+  </head>
+  <body>
+    <header>
+      <h1>MemoPad改</h1>
+    </header>
+    <main>
+      <input type="text" id="key" placeholder="Enter the title">
+
+      <textarea id="memo" placeholder="Please enter the main text"></textarea>
+
+      <p>canvas</p>
+
+
+      <!-- canvas -->
+      <canvas id="canvas" width="1200px" height="500px"  style="border: solid 1px #000;box-sizing: border-box;"></canvas>
+      <div class="option">
+        <div class="color">
+          color：
+          <a href="" class="black" data-color="0, 0, 0, 1"></a>
+          <a href="" class="red" data-color="255, 0, 0, 1"></a>
+          <a href="" class="blue" data-color="0, 0, 255, 1"></a>
+        </div>
+        <div class="bold">
+          bold：
+          <a href="" class="small" data-bold="1">小</a>
+          <a href="" class="middle" data-bold="5">中</a>
+          <a href="" class="large" data-bold="10">大</a>
+        </div>
+      </div>
+      <input type="button" value="clear" id="clear">
+      <a id="download" href="#" download="canvas.jpg">ダウンロード</a>
+      <div id="result"><img src=""></div>
+      <script src="js/jquery-3.6.0.min.js"></script>
+
+
+      <ul>
+        <li id="save">Save</li>
+        <!-- <li id="clear">All_Clear</li> -->
+      </ul>
+    </main>
+    <table id="list">
+      <!-- ここに追加データが挿入される -->
+    </table>
+    <script>
+
+
+    // canvas
+    var cnvs = document.getElementById('canvas');
+    var ctx = cnvs.getContext('2d');
+
+    // 変数宣言
+    const cnvWidth = 1200;
+    const cnvHeight = 500;
+    var cnvColor = "255, 0, 0, 1";  // 線の色
+    var cnvBold = 5;  // 線の太さ
+    var clickFlg = 0;  // クリック中の判定 1:クリック開始 2:クリック中
+    var bgColor = "rgb(255,255,255)";
+
+    // canvasの背景色を設定(指定がない場合にjpeg保存すると背景が黒になる)
+    setBgColor();
+
+    // canvas上でのイベント
+    $("#canvas").mousedown(function(){
+      clickFlg = 1; // マウス押下開始
+    }).mouseup(function(){
+      clickFlg = 0; // マウス押下終了
+    }).mousemove(function(e){
+      // マウス移動処理
+      if(!clickFlg) return false;
+      draw(e.offsetX, e.offsetY);
+    });
+
+    // 描画処理
+    function draw(x, y) {
+      ctx.lineWidth = cnvBold;
+      ctx.strokeStyle = 'rgba('+cnvColor+')';
+      // 初回処理の判定
+      if (clickFlg == "1") {
+        clickFlg = "2";
+        ctx.beginPath();
+        ctx.lineCap = "round";  //　線を角丸にする
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    };
+
+    // 色の変更
+    $(".color a").click(function(){
+      cnvColor = $(this).data("color");
+      return false;
+    });
+
+    // 線の太さ変更
+    $(".bold a").click(function(){
+      cnvBold = $(this).data("bold");
+      return false;
+    });
+
+    // 描画クリア
+    $("#clear").click(function(){
+      ctx.clearRect(0,0,1000,cnvHeight);
+      setBgColor();
+    });
+
+    // canvasを画像で保存
+    $("#download").click(function(){
+      canvas = document.getElementById('canvas');
+      var base64 = canvas.toDataURL("image/jpeg");
+      document.getElementById("download").href = base64;
+    });
+    
+    // // Canvasからbase64エンコーディングされた画像データを取得する
+    // var canvas = document.getElementById("Mycanvas");
+    // var base64 = canvas.toDataURL();
+
+    // // LocalStorageに保存する
+    // window.localStorage.setItem("saveKey", base64);
+
+    function setBgColor(){
+      // canvasの背景色を設定(指定がない場合にjpeg保存すると背景が黒になる)
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0,0,cnvWidth,cnvHeight);
+    }
+
+    // // LocalStorageのデータをcanvasに描画
+    // window.onload = function(){
+    //     var data = localStorage.getItem('img_data');
+    //     var canvas = document.getElementById("canvas");
+    //     var ctx = canvas.getContext("2d");
+    //     var img = new Image();
+    //     img.onload = function(){
+    //       ctx.drawImage(img,0,0);
+    //     };
+    //     img.src = data;//ローカルストレージ のキーを画像のデータに
+    //   }
+
+
+
+      // this
+      $('.box p').on('click',function(){
+        const vvv = $(this).text();
+
+        const key = localStorage.key('color');
+        const value = localStorage.getItem(key); //色が入ってくる
+
+        $(this).css('color', value);
+        console.log(vvv, 'thisは何ですか')
+      })
+
+
+
+      //1.Save クリックイベント
+      $("#save").on("click", function () {
+        // valの記述
+        const key = $("#key").val();
+        console.log(key, "key");
+
+        const value = $("#memo").val();
+        console.log(value, "value");
+
+        localStorage.setItem(key, value,value);
+
+        // テンプレートリテラルという新しい書き方（推奨！！）
+        const html = `
+          <tr>
+              <th>${key}</th>
+              <td>${value}</td>
+          </tr>
+          `;
+
+        // htmlに表示＝jQueryで処理をしたものをhtmlに埋め込む
+        $("#list").append(html);
+      });
+
+      //2.clear クリックイベント
+      $("#clear").on("click", function () {
+        // アプリケーション→ローカルストレージの項目を削除する
+        alert("全て削除されます。宜しければOK。キャンセルしたい場合はEscキーを押して下さい。")
+        localStorage.clear();
+
+        // id='list'の中身を削除する
+        $("#list").empty();
+      });
+
+      //3.ページ読み込み：保存データ取得表示
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+
+        const html = `
+          <tr>
+              <td><input type="text" value=${key} /></td>
+              <th><input type="text" value=${value} /></th>
+          </tr>
+          `;
+
+        // htmlに表示＝jQueryで処理をしたものをhtmlに埋め込む
+        $("#list").append(html);
+      }
+
+      // 削除の例
+      $("tr").on("click", function () {
+        // 鍵が入ってきます　
+        //タグの中の文字をプログラミングで取得したいとき
+        alert("クリックすると選択した行のレコードが削除されます。宜しければOK。キャンセルはEscキーを押して下さい。")
+        const vvv = $(this).parent().children('td').text(); 
+        console.log(vvv, 'thisをチェック')
+
+         localStorage.removeItem(vvv)
+
+         $(this).empty();
+      });
+
+      // 色を押したところチェック
+      $('#color').on('change', function(){
+        const vv = $(this).val(); //何が取得できるかチェック　inputタグなのでval()を使う
+
+        localStorage.setItem('color', vv)
+        console.log(vv, 'color')
+      })
+
+
+    </script>
+    <footer><small>G's</small></footer>
+  </body>
+</html>
